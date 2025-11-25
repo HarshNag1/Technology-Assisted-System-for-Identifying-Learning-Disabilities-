@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SLD Screening Questionnaire</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script>window.jspdf = window.jspdf || {}; window.jspdf.jsPDF = window.jspdf.jsPDF || {};</script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-light: #818cf8;
+            --secondary: #10b981;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-700: #374151;
+            --gray-900: #111827;
+        }
+        
+        body {
+            font-family: 'Roboto', sans-serif;
+            line-height: 1.6;
+            color: var(--gray-900);
+            background-color: #f9fafb;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .questionnaire-header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+        
+        .questionnaire-header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: 0.5rem;
+        }
+        
+        .questionnaire-header p {
+            color: var(--gray-700);
+            font-size: 1.1rem;
+        }
+        
+        .part-container {
+            background: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .part-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--gray-200);
+        }
+        
+        .part-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--gray-900);
+        }
+        
+        .question {
+            margin-bottom: 2rem;
+            padding: 1.25rem;
+            border-radius: 0.5rem;
+            background-color: var(--gray-50);
+            transition: all 0.2s;
+        }
+        
+        .question:hover {
+            background-color: var(--gray-100);
+        }
+        
+        .question-text {
+            font-weight: 500;
+            margin-bottom: 1rem;
+            color: var(--gray-800);
+        }
+        
+        .options-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 0.75rem;
+        }
+        
+        .option {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            background: white;
+            border: 1px solid var(--gray-200);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .option:hover {
+            border-color: var(--primary);
+            background-color: #f5f3ff;
+        }
+        
+        .option input[type="radio"] {
+            margin-right: 0.5rem;
+        }
+        
+        .navigation-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--gray-200);
+        }
+        
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #4338ca;
+        }
+        
+        .btn-outline {
+            background: white;
+            border: 1px solid var(--gray-300);
+            color: var(--gray-700);
+        }
+        
+        .btn-outline:hover {
+            background-color: var(--gray-100);
+            border-color: var(--gray-400);
+        }
+        
+        .progress-container {
+            margin-bottom: 2rem;
+        }
+        
+        .progress-bar {
+            height: 8px;
+            background-color: var(--gray-200);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .progress {
+            height: 100%;
+            background-color: var(--primary);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        .progress-text {
+            text-align: right;
+            font-size: 0.875rem;
+            color: var(--gray-600);
+            margin-top: 0.5rem;
+        }
+        
+        @media (max-width: 768px) {
+            .options-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .container {
+                padding: 1rem;
+            }
+            
+            .question {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="questionnaire-header">
+            <h1>SLD Screening Questionnaire</h1>
+            <p>Please answer all questions honestly based on your experiences.</p>
+        </div>
+        
+        <div class="progress-container">
+            <div class="progress-bar">
+                <div class="progress" id="progress-bar"></div>
+            </div>
+            <div class="progress-text"><span id="progress-text">0</span>% Complete</div>
+        </div>
+        
+        <form id="screening-form">
+            <!-- Part A: Reading Difficulties -->
+            <div class="part-container" id="part-a">
+                <div class="part-header">
+                    <h2 class="part-title">Part A</h2>
+                </div>
+                
+                <div class="questions-container">
+                    <!-- Questions will be dynamically inserted here by JavaScript -->
+                </div>
+            </div>
+            
+            <!-- Navigation Buttons -->
+            <div class="navigation-buttons">
+                <button type="button" id="prev-btn" class="btn btn-outline" disabled>
+                    <i class="fas fa-arrow-left mr-2"></i> Previous
+                </button>
+                <button type="button" id="next-btn" class="btn btn-primary">
+                    Next <i class="fas fa-arrow-right ml-2"></i>
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // Questionnaire data
+        const questionnaireData = [
+            {
+                id: 'a',
+                title: 'Reading Difficulties',
+                questions: [
+                    "I feel difficulty in remembering words or names.",
+                    "I am slow in reading.",
+                    "I get confused with similar-looking words (e.g., beard/bread).",
+                    "I feel difficulty in differentiating left from right.",
+                    "I get confused by letters like 'b' and 'd', 'm' and 'w'.",
+                    "While reading, I omit or add new letters/words.",
+                    "I feel difficulty in identifying or generating rhyming words."
+                ]
+            },
+            {
+                id: 'b',
+                title: 'Writing Difficulties',
+                questions: [
+                    "I commit spelling errors while writing.",
+                    "I am unable to read my own handwriting.",
+                    "I feel comfortable in explaining things orally than in writing.",
+                    "I face difficulty with spellings of simple words.",
+                    "I reverse letters while writing, for example, writing 'q' instead of 'p' or b/d, u/v, w/m frequently.",
+                    "I face difficulty in spacing between words/letters while writing.",
+                    "I face difficulty in the use of capital and small letters."
+                ]
+            },
+            {
+                id: 'c',
+                title: 'Mathematical Difficulties',
+                questions: [
+                    "I face difficulty in basic calculations like addition, subtraction, & multiplication facts.",
+                    "I face trouble telling time (on either a digital or analog clock).",
+                    "I face difficulty in learning and applying mathematical formulas.",
+                    "I face difficulty in understanding mathematical symbols such as +, -, x, /.",
+                    "I face difficulty in remembering numbers, figures, i.e. dates, years or statistical facts.",
+                    "I face difficulty while following the direction (left/right/up-down/front/back).",
+                    "I feel comfortable with concrete as compare to abstract concepts."
+                ]
+            },
+            {
+                id: 'd',
+                title: 'Speech and Language Difficulties',
+                questions: [
+                    "I face difficulty while speaking.",
+                    "I feel difficulty in speaking complete sentences.",
+                    "I use lots of fillers (e.g., uh, um, and, you know, so) while speaking.",
+                    "I face difficulty in pronouncing the words.",
+                    "I take undesirable pauses while speaking.",
+                    "I face difficulty in communicating with others.",
+                    "I face difficulty in imitating speech sounds."
+                ]
+            },
+            {
+                id: 'e',
+                title: 'Motor Skills Difficulties',
+                questions: [
+                    "I face difficulties with daily tasks such as tying shoelaces, fastening buttons and zips.",
+                    "I face difficulty in eating without getting dirty.",
+                    "I face difficulty in writing my ideas clearly.",
+                    "I make errors while copying.",
+                    "I face difficulty in learning new skills/things.",
+                    "I face difficulty in coordinating with others.",
+                    "I face difficulty in holding things like pens/balls/utensils."
+                ]
+            },
+            {
+                id: 'f',
+                title: 'Anxiety and Emotional Difficulties',
+                questions: [
+                    "I worry about things even before they happened.",
+                    "I become annoyed or irritable easily.",
+                    "I feel afraid as if something bad might happen.",
+                    "I am unable to stop or control worrying.",
+                    "I become restless to sit still.",
+                    "I face difficulty in falling asleep.",
+                    "I face difficulty in concentration while performing any task."
+                ]
+            },
+            {
+                id: 'g',
+                title: 'Attention and Hyperactivity Difficulties',
+                questions: [
+                    "I fail to pay consistent attention on work.",
+                    "I easily get distracted by any kind of sound and movement.",
+                    "I respond hastily, even before the completion of question.",
+                    "I always face difficulty waiting in queue.",
+                    "I fidget and squirm while sitting.",
+                    "I face difficulty in playing quietly.",
+                    "I bump into things like door frames or table corners."
+                ]
+            },
+            {
+                id: 'h',
+                title: 'Obsessive-Compulsive Difficulties',
+                questions: [
+                    "Most of my time is occupied by obsessive thoughts.",
+                    "My compulsive thoughts interfere with my school, social and daily life.",
+                    "I make efforts to fight against my compulsions.",
+                    "I wash hands more than normal times in a day.",
+                    "I frequently feel contaminated.",
+                    "I have fear of offending religious objects (God).",
+                    "I usually check things more than normal (I doubt whether I have locked the door or turned off the stove/Light/gas)."
+                ]
+            },
+            {
+                id: 'i',
+                title: 'Social Communication Difficulties',
+                questions: [
+                    "I avoid eye contact.",
+                    "I face difficulty in showing appropriate social response.",
+                    "I face difficulty in showing appropriate emotional response.",
+                    "I usually give delayed response.",
+                    "I face difficulty in making friends.",
+                    "I face difficulty in coping with sudden changes in my routine (for example, changes in time table due to teacher absence or moving to another classroom etc.).",
+                    "I exhibit repetitive mannerisms like hand flapping, nodding head, finger movement, and rocking body, vocal repetitions (sounds/words/phrases)."
+                ]
+            },
+            {
+                id: 'j',
+                title: 'Tic and Movement Difficulties',
+                questions: [
+                    "I often repeat sudden twitches or jerks of the extremities, (like eye blinking, neck twisting, muscle tightening, shoulder shrugging, or any similar movement).",
+                    "I often utter involuntary sounds (like grunts, yelps, squeaks, or throat clears).",
+                    "I cannot control my body to jerk.",
+                    "I feel pressure to talk, shout, or scream.",
+                    "I involuntarily mimic the motions or words of others.",
+                    "The unpleasant or silly thought or picture goes through my mind.",
+                    "I have habits or movements that come out more when I'm nervous."
+                ]
+            }
+        ];
+
+        // Initialize the questionnaire
+        document.addEventListener('DOMContentLoaded', function() {
+            const questionsContainer = document.querySelector('.questions-container');
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            const form = document.getElementById('questionnaire-form');
+            const progressBar = document.querySelector('.progress-bar');
+            const progressText = document.querySelector('.progress-text');
+            let currentPart = 0;
+            const responses = new Map();
+            
+            // Development mode flag
+            const isDevelopment = true; // Set to false in production // Store responses in memory
+            
+            // Render current part
+            function renderPart(partIndex) {
+                const part = questionnaireData[partIndex];
+                if (!part) return;
+                
+                // Update progress
+                const progress = ((partIndex + 1) / questionnaireData.length) * 100;
+                progressBar.style.width = `${progress}%`;
+                progressText.textContent = Math.round(progress);
+                
+                // Update part title to show only 'Part A', 'Part B', etc.
+                document.querySelector('.part-title').textContent = `Part ${part.id.toUpperCase()}`;
+                
+                // Render questions
+                questionsContainer.innerHTML = '';
+                part.questions.forEach((question, index) => {
+                    const questionElement = document.createElement('div');
+                    questionElement.className = 'question';
+                    questionElement.innerHTML = `
+                        <div class="question-text">${index + 1}. ${question}</div>
+                        <div class="options-container">
+                            <label class="option">
+                                <input type="radio" name="q${part.id}${index + 1}" value="0" required>
+                                Never (N)
+                            </label>
+                            <label class="option">
+                                <input type="radio" name="q${part.id}${index + 1}" value="1">
+                                Rarely (R)
+                            </label>
+                            <label class="option">
+                                <input type="radio" name="q${part.id}${index + 1}" value="2">
+                                Sometimes (S)
+                            </label>
+                            <label class="option">
+                                <input type="radio" name="q${part.id}${index + 1}" value="3">
+                                Often (O)
+                            </label>
+                            <label class="option">
+                                <input type="radio" name="q${part.id}${index + 1}" value="4">
+                                Always (A)
+                            </label>
+                        </div>
+                    `;
+                    questionsContainer.appendChild(questionElement);
+                });
+                
+                // Update navigation buttons
+                prevBtn.disabled = partIndex === 0;
+                nextBtn.textContent = partIndex === questionnaireData.length - 1 ? 'Submit' : 'Next';
+                nextBtn.innerHTML = partIndex === questionnaireData.length - 1 
+                    ? 'Submit <i class="fas fa-check ml-2"></i>' 
+                    : 'Next <i class="fas fa-arrow-right ml-2"></i>';
+            }
+            
+            // Save responses for current part
+            function saveResponses(partIndex) {
+                const part = questionnaireData[partIndex];
+                const partResponses = [];
+                
+                part.questions.forEach((_, index) => {
+                    const questionName = `q${part.id}${index + 1}`;
+                    const selectedOption = form.querySelector(`input[name="${questionName}"]:checked`);
+                    if (selectedOption) {
+                        partResponses.push({
+                            question: questionName,
+                            value: parseInt(selectedOption.value)
+                        });
+                        responses.set(questionName, parseInt(selectedOption.value));
+                    }
+                });
+                
+                return partResponses;
+            }
+            
+            // Calculate scores for all parts
+            function calculateScores() {
+                const scores = {};
+                const totalQuestions = questionnaireData.reduce((sum, part) => sum + part.questions.length, 0);
+                let totalScore = 0;
+                
+                questionnaireData.forEach(part => {
+                    let partScore = 0;
+                    let partMaxScore = 0;
+                    
+                    part.questions.forEach((_, index) => {
+                        const questionName = `q${part.id}${index + 1}`;
+                        if (responses.has(questionName)) {
+                            partScore += responses.get(questionName);
+                            partMaxScore += 4; // Max score per question is 4 (for Always)
+                        }
+                    });
+                    
+                    // Calculate normalized score (0-1)
+                    scores[part.id] = partMaxScore > 0 ? partScore / partMaxScore : 0;
+                    totalScore += partScore;
+                });
+                
+                // Calculate overall score (0-100)
+                const maxPossibleScore = totalQuestions * 4;
+                const overallScore = maxPossibleScore > 0 ? (totalScore / maxPossibleScore) : 0;
+                
+                return { scores, overallScore };
+            }
+            
+            // Get recommendations based on scores
+            function getRecommendations(scores) {
+                const recommendations = [];
+                const concernLevels = {
+                    high: 'High',
+                    medium: 'Moderate',
+                    low: 'Mild',
+                    none: 'Minimal or None'
+                };
+                
+                // Add overall recommendation
+                const overallScore = calculateScores().overallScore;
+                let overallLevel = concernLevels.none;
+                
+                if (overallScore >= 0.7) overallLevel = concernLevels.high;
+                else if (overallScore >= 0.4) overallLevel = concernLevels.medium;
+                else if (overallScore >= 0.1) overallLevel = concernLevels.low;
+                
+                recommendations.push({
+                    title: 'Overall Assessment',
+                    level: overallLevel,
+                    suggestions: [
+                        'Based on your responses, ' + overallLevel.toLowerCase() + ' concerns were identified.',
+                        'Consider consulting with a specialist for further evaluation.'
+                    ]
+                });
+                
+                // Add specific part recommendations
+                for (const [partId, score] of Object.entries(scores)) {
+                    if (score > 0.5) { // Only include parts with significant scores
+                        const part = questionnaireData.find(p => p.id === partId);
+                        if (part) {
+                            let level = concernLevels.none;
+                            if (score >= 0.7) level = concernLevels.high;
+                            else if (score >= 0.4) level = concernLevels.medium;
+                            
+                            recommendations.push({
+                                title: part.title,
+                                level: level,
+                                suggestions: getPartSpecificRecommendations(partId, score)
+                            });
+                        }
+                    }
+                }
+                
+                return recommendations;
+            }
+            
+            // Get specific recommendations for each part
+            function getPartSpecificRecommendations(partId, score) {
+                const recommendations = [];
+                
+                // Add general recommendations based on score
+                if (score >= 0.7) {
+                    recommendations.push('High level of concern detected in this area.');
+                    recommendations.push('Professional assessment is strongly recommended.');
+                } else if (score >= 0.4) {
+                    recommendations.push('Moderate level of concern detected.');
+                    recommendations.push('Consider monitoring and further evaluation if concerns persist.');
+                } else {
+                    recommendations.push('Mild or no significant concerns detected.');
+                }
+                
+                // Add part-specific recommendations
+                switch(partId) {
+                    case 'a':
+                        recommendations.push('Consider reading support or tutoring if difficulties persist.');
+                        break;
+                    case 'b':
+                        recommendations.push('Writing support or occupational therapy may be beneficial.');
+                        break;
+                    case 'c':
+                        recommendations.push('Math support or specialized instruction may be helpful.');
+                        break;
+                    // Add more specific recommendations for other parts
+                }
+                
+                return recommendations;
+            }
+            
+            // Navigate to results page
+            function goToResults() {
+                const { scores, overallScore } = calculateScores();
+                const recommendations = getRecommendations(scores);
+                
+                // Store results in session storage
+                const results = {
+                    scores,
+                    overallScore,
+                    recommendations,
+                    timestamp: new Date().toISOString()
+                };
+                
+                sessionStorage.setItem('assessmentResults', JSON.stringify(results));
+                window.location.href = 'results.html';
+            }
+            
+            // Event listeners
+            prevBtn.addEventListener('click', () => {
+                if (currentPart > 0) {
+                    saveResponses(currentPart);
+                    currentPart--;
+                    renderPart(currentPart);
+                }
+            });
+            
+            nextBtn.addEventListener('click', () => {
+                // Save current part responses
+                saveResponses(currentPart);
+                
+                // Validate current part
+                if (!form.checkValidity()) {
+                    form.reportValidity();
+                    return;
+                }
+                
+                if (currentPart < questionnaireData.length - 1) {
+                    currentPart++;
+                    renderPart(currentPart);
+                } else {
+                    // All parts completed, go to results
+                    goToResults();
+                }
+            });
+            
+            // Load any previously saved responses
+            function loadSavedResponses() {
+                const savedResponses = sessionStorage.getItem('questionnaireResponses');
+                if (savedResponses) {
+                    try {
+                        const parsed = JSON.parse(savedResponses);
+                        parsed.forEach(([key, value]) => responses.set(key, value));
+                    } catch (e) {
+                        console.error('Error loading saved responses:', e);
+                    }
+                }
+            }
+            
+            // Save responses to session storage
+            function saveToSessionStorage() {
+                const responsesArray = Array.from(responses.entries());
+                sessionStorage.setItem('questionnaireResponses', JSON.stringify(responsesArray));
+            }
+            
+            // Initialize the first part
+            loadSavedResponses();
+            renderPart(currentPart);
+            
+            // Auto-save responses every 5 seconds
+            setInterval(saveToSessionStorage, 5000);
+
+            // Development mode toggle and panel
+            document.addEventListener('keydown', (e) => {
+                if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'd') {
+                    const devPanel = document.getElementById('dev-panel');
+                    if (devPanel) {
+                        devPanel.style.display = devPanel.style.display === 'none' ? 'block' : 'none';
+                    }
+                }
+            });
+
+            // Create development panel
+            const devPanel = document.createElement('div');
+            devPanel.id = 'dev-panel';
+            devPanel.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #f8f9fa;
+                padding: 15px;
+                border-radius: 8px;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+                z-index: 10000;
+                max-width: 300px;
+                display: none;
+                border: 2px solid #dc3545;
+            `;
+
+            // Add score sliders for each part
+            let scoreControls = '<h4 style="margin: 0 0 10px 0; color: #dc3545;">Set Test Scores (0-4)</h4>';
+            questionnaireData.forEach((part, index) => {
+                scoreControls += `
+                    <div style="margin-bottom: 10px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                            <label style="font-weight: 500;">Part ${part.id.toUpperCase()}:</label>
+                            <span id="score-${part.id}">2</span>
+                        </div>
+                        <input type="range" id="slider-${part.id}" min="0" max="4" value="2" step="1" 
+                               style="width: 100%;" class="score-slider" data-part="${part.id}">
+                    </div>`;
+            });
+
+            devPanel.innerHTML = `
+                <h3 style="margin-top: 0; color: #dc3545;">DEVELOPMENT MODE</h3>
+                <div id="score-controls">${scoreControls}</div>
+                <div style="display: flex; gap: 10px; margin-top: 15px;">
+                    <button id="apply-scores" style="padding: 8px 15px; background: #28a745; color: white; 
+                        border: none; border-radius: 4px; cursor: pointer; font-weight: 500;">Apply Scores</button>
+                    <button id="reset-scores" style="padding: 8px 15px; background: #6c757d; color: white; 
+                        border: none; border-radius: 4px; cursor: pointer;">Reset</button>
+                </div>
+                <div style="font-size: 12px; color: #6c757d; margin-top: 10px;">
+                    Press Ctrl+Shift+D to toggle this panel
+                </div>`;
+
+            document.body.appendChild(devPanel);
+
+            // Add event listeners for sliders
+            document.querySelectorAll('.score-slider').forEach(slider => {
+                const partId = slider.dataset.part;
+                const scoreDisplay = document.getElementById(`score-${partId}`);
+                
+                slider.addEventListener('input', (e) => {
+                    scoreDisplay.textContent = e.target.value;
+                });
+            });
+
+            // Apply scores button - Development mode only
+            document.getElementById('apply-scores').addEventListener('click', () => {
+                const results = {
+                    scores: {},
+                    overallScore: 0,
+                    recommendations: []
+                };
+                
+                // Calculate scores based on sliders
+                let totalScore = 0;
+                questionnaireData.forEach(part => {
+                    const score = parseInt(document.getElementById(`slider-${part.id}`).value);
+                    // Store raw score (0-4)
+                    results.scores[part.id] = score;
+                    // Add to total for overall score
+                    totalScore += score;
+                });
+                
+                // Calculate overall score as percentage (0-100)
+                const maxPossibleScore = questionnaireData.length * 4;
+                results.overallScore = (totalScore / maxPossibleScore) * 100;
+                
+                // Generate recommendations
+                const recommendations = [];
+                const concernLevels = {
+                    high: 'High',
+                    medium: 'Moderate',
+                    low: 'Mild',
+                    none: 'Minimal or None'
+                };
+                
+                // Add overall recommendation
+                let overallLevel = concernLevels.none;
+                const normalizedOverall = results.overallScore / 100;
+                
+                if (normalizedOverall >= 0.7) overallLevel = concernLevels.high;
+                else if (normalizedOverall >= 0.4) overallLevel = concernLevels.medium;
+                else if (normalizedOverall >= 0.1) overallLevel = concernLevels.low;
+                
+                recommendations.push({
+                    title: 'Overall Assessment',
+                    level: overallLevel,
+                    suggestions: [
+                        `Current screening suggests ${overallLevel.toLowerCase()} concerns.`,
+                        overallLevel === concernLevels.none ? 'No significant concerns detected at this time.' : 'Consider further evaluation with a specialist.'
+                    ]
+                });
+                
+                // Add part-specific recommendations
+                Object.entries(results.scores).forEach(([partId, score]) => {
+                    const normalizedScore = score / 4; // Convert to 0-1 range
+                    let level = concernLevels.none;
+                    
+                    if (normalizedScore >= 0.7) level = concernLevels.high;
+                    else if (normalizedScore >= 0.4) level = concernLevels.medium;
+                    else if (normalizedScore >= 0.1) level = concernLevels.low;
+                    
+                    if (level !== concernLevels.none) {
+                        const part = questionnaireData.find(p => p.id === partId);
+                        if (part) {
+                            recommendations.push({
+                                title: part.title,
+                                level: level,
+                                suggestions: [
+                                    `Scored ${score}/4 in this section.`,
+                                    level === 'High' ? 'This area shows significant concerns that may require professional attention.' :
+                                    level === 'Moderate' ? 'This area shows some concerns that may benefit from monitoring.' :
+                                    'This area shows mild concerns that may not require immediate action.'
+                                ]
+                            });
+                        }
+                    }
+                });
+                
+                results.recommendations = recommendations;
+                
+                // Save to session storage
+                sessionStorage.setItem('assessmentResults', JSON.stringify(results));
+                console.log('Saving results to sessionStorage:', results);
+                
+                // Go to results page
+                window.location.href = 'results.html';
+            });
+
+            // Reset scores button
+            document.getElementById('reset-scores').addEventListener('click', () => {
+                document.querySelectorAll('.score-slider').forEach(slider => {
+                    slider.value = 2;
+                    const partId = slider.dataset.part;
+                    document.getElementById(`score-${partId}`).textContent = '2';
+                });
+            });
+        });
+    </script>
+</body>
+</html>
